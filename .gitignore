@@ -102,3 +102,12 @@ ENV/
 
 # visual code
 .vscode/
+
+# compressed files
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+
+# hold libs locally so it doesnt mess with the repository
+libs/*
