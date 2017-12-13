@@ -110,4 +110,4 @@ ENV/
 *.tar.bz2
 
 # hold libs locally so it doesnt mess with the repository
-libs/*
+src/resources/*
