@@ -46,3 +46,5 @@ subreddits = Subreddit(client_id='g7g1TXRPCG1t4g',
 print ('It\'s finished')
 
 sa = SentimentAnalyser()
+print('dale')
+sa.perform_analysis()
