@@ -51,8 +51,8 @@ class Subreddit(object):
         # print(self.start_seconds_timestamp)
         # print('self.end_seconds_timestamp: ')
         # print(self.end_seconds_timestamp)
-        # print('self.term_time: ')
-        # print(self.term_time)
+        print('self.term_time: ')
+        print(self.term_time)
 
         # print ('comments: ')
         # print (self.comments)
@@ -78,13 +78,19 @@ class Subreddit(object):
         #     'despite': (
         #         5,
         #         {
-        #             '12345678': {
-        #                 'JJ': 2
-        #             },
-        #             '8764321': {
-        #                 'JJ': 1, 
-        #                 'NN': 2
-        #             }
+        #           'JJ': (
+        #               3,
+        #               {
+        #                   '12345678': 2,
+        #                   '8764321': 1
+        #               }
+        #            ),
+        #            'NN': (
+        #                2,
+        #                {
+        #                    '8764321': 2
+        #                }
+        #            )
         #         }
         #     )
         # }
@@ -95,17 +101,21 @@ class Subreddit(object):
             for (term, postag) in comment.words:
                 if term not in term_time:
                     term_time[term] = (0, {})
-                if ctimeframe not in term_time[term][1]:
-                    term_time[term][1][ctimeframe] = {}
+                if postag not in term_time[term][1]:
+                    term_time[term][1][postag] = (0, {})
+                if ctimeframe not in term_time[term][1][postag][1]:
+                    term_time[term][1][postag][1][ctimeframe] = 0
+                
+                term_time[term][1][postag] = (
+                    term_time[term][1][postag][0] + 1,
+                    term_time[term][1][postag][1]
+                )
                 term_time[term] = (
                     term_time[term][0] + 1, 
                     term_time[term][1]
                 )
-                # postag = 'JJ'
-                if postag not in term_time[term][1][ctimeframe]:
-                    term_time[term][1][ctimeframe][postag] = 0
-                term_time[term][1][ctimeframe][postag] += 1
-                
+                term_time[term][1][postag][1][ctimeframe] += 1
+
         return term_time
 
     def _get_comments(self):
