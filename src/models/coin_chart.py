@@ -18,6 +18,10 @@ class Candle(object):
         self.volume = volume
         self.percentage_variation = open_price/close_price 
 
+    @property
+    def seconds_timestamp(self):
+        return str(self.timestamp)[0:-3]
+
 
 class CoinChart(object):
     candles_timeframe = '12h'
@@ -25,7 +29,7 @@ class CoinChart(object):
     end_date = 0    # A datetime.date object
     chart_exchange = 'tBTCUSD'
 
-    candles = None
+    candles = {}
 
     # Constants
     sort = -1
@@ -39,54 +43,49 @@ class CoinChart(object):
         self.candles_timeframe = timeframe
         self.chart_exchange = chart_exchange
 
-        self.candles = self._build_candles
+        self.candles = self._build_candles()
 
     @property
-    def start_timestamp(self):
+    def start_seconds_timestamp(self):
         return calendar.timegm(self.start_date.timetuple())
 
     @property
-    def end_timestamp(self):
+    def end_seconds_timestamp(self):
         return calendar.timegm(self.end_date.timetuple())
+
+    def get_candle(timeframe):
+        return candles
 
     def _get_url(timeframe, exchange, type):
         return 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':' + exchange + '/' + type
 
     def _build_candles(self):
-        candles = []
-        start_date = self.start_timestamp
-        end_date = self.end_timestamp
+        candles = {}
+        start_seconds_timestamp = self.start_seconds_timestamp
+        end_seconds_timestamp = self.end_seconds_timestamp
         
-        while(start_date < end_date):
+        while(start_seconds_timestamp < end_seconds_timestamp):
             params = {
                 'limit': self.limit,
-                'start': start_timestampt,
-                'end': end_timestamp,
+                'start': start_seconds_timestamp,
+                'end': end_seconds_timestamp,
                 'sort': self.sort
             }
             url = _get_url(self.candles_timeframe, self.chart_exchange, self.chart_type)
 
+            # Response with Section = "hist"
+            # [
+            #   [ MTS, OPEN, CLOSE, HIGH, LOW, VOLUME ], 
+            #   ...
+            # ]
             r = requests.get(url, params=params)
             # print('Total of candles: ' + str(len(r.json())))
 
+            last_timestamp = 0
             for candle in r.json():
-                candles.push(Candle(candle[0], candle[1], candle[2], candle[3], candle[4], candle[5]))
-                # Response with Section = "last"
-                # [ 
-                #   MTS, 
-                #   OPEN, 
-                #   CLOSE, 
-                #   HIGH, 
-                #   LOW, 
-                #   VOLUME 
-                # ]
+                last_timestamp = candle[0]
+                candles[last_timestamp] = Candle(candle[0], candle[1], candle[2], candle[3], candle[4], candle[5])
 
-                # Response with Section = "hist"
-                # [
-                #   [ MTS, OPEN, CLOSE, HIGH, LOW, VOLUME ], 
-                #   ...
-                # ]
-
-            start_date = start_date + candles[len(candles)-1].timestamp
+            start_seconds_timestamp = start_seconds_timestamp + last_timestamp
 
         return candles
