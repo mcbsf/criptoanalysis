@@ -21,6 +21,8 @@ coin_chart = CoinChart(start_date=start_date,
 	timeframe='12h', 
 	chart_exchange='tBTCUSD')
 
+print ('Start time: ', coin_chart.start_seconds_timestamp)
+print ('End time: ', coin_chart.end_seconds_timestamp, '\n')
 print ('Starting subreddit comments retrieval\n')
 
 comment_cleaner = lambda document: cleaner_builder(
