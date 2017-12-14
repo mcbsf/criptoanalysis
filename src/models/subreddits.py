@@ -168,4 +168,7 @@ class Subreddit(object):
             start_seconds_timestamp = end_seconds_timestamp
             break
 
-        return all_comments
+        return 
+    
+    def get_term_time_freq(self, term, postag, ctimeframe):
+        return self.term_time[term][1][postag][1][ctimeframe]
