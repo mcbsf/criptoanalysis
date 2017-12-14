@@ -20,9 +20,9 @@ class Candle(object):
 
 
 class CoinChart(object):
-    candles_time_frame = '12h'
-    start_date = 0 # A datetime.date object
-    end_date = 0 # A datetime.date object
+    candles_timeframe = '12h'
+    start_date = 0  # A datetime.date object
+    end_date = 0    # A datetime.date object
     chart_exchange = 'tBTCUSD'
 
     candles = None
@@ -33,10 +33,10 @@ class CoinChart(object):
     chart_type = 'hist'
 
     # The class "constructor" - It's actually an initializer 
-    def __init__(self, start_date, end_date, time_frame, chart_exchange):
+    def __init__(self, start_date, end_date, timeframe, chart_exchange):
         self.start_date = start_date
         self.end_date = end_date
-        self.candles_time_frame = time_frame
+        self.candles_timeframe = timeframe
         self.chart_exchange = chart_exchange
 
         self.candles = self._build_candles
@@ -64,7 +64,7 @@ class CoinChart(object):
                 'end': end_timestamp,
                 'sort': self.sort
             }
-            url = _get_url(self.candles_time_frame, self.chart_exchange, self.chart_type)
+            url = _get_url(self.candles_timeframe, self.chart_exchange, self.chart_type)
 
             r = requests.get(url, params=params)
             # print('Total of candles: ' + str(len(r.json())))
