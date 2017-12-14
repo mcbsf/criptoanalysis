@@ -25,7 +25,7 @@ class Comment(object):
         return self._timeframe
 
     def _generate_timeframe_key(self, seed):
-        return self.seconds_timestamp - (self.seconds_timestamp % seed)
+        return int(self.seconds_timestamp - (self.seconds_timestamp % seed))
 
 class Subreddit(object):
 
@@ -51,8 +51,8 @@ class Subreddit(object):
         # print(self.start_seconds_timestamp)
         # print('self.end_seconds_timestamp: ')
         # print(self.end_seconds_timestamp)
-        print('self.term_time: ')
-        print(self.term_time)
+        # print('self.term_time: ')
+        # print(self.term_time)
 
         # print ('comments: ')
         # print (self.comments)
@@ -72,6 +72,15 @@ class Subreddit(object):
     @property
     def end_seconds_timestamp(self):
         return calendar.timegm(self.end_date.timetuple())
+
+    def get_term_tags(self, term):
+        return self.term_time[term][1]
+        
+    def get_term_time(self, term, postag):
+        return self.term_time[term][1][postag][1]
+
+    def get_term_time_freq(self, term, postag, ctimeframe):
+        return self.term_time[term][1][postag][1][str(ctimeframe)]
 
     def _build_term_time(self):
         # term_time = {
@@ -98,23 +107,24 @@ class Subreddit(object):
         term_time = {}
         for comment in self.comments:
             ctimeframe = comment.timeframe
-            for (term, postag) in comment.words:
-                if term not in term_time:
-                    term_time[term] = (0, {})
-                if postag not in term_time[term][1]:
-                    term_time[term][1][postag] = (0, {})
-                if ctimeframe not in term_time[term][1][postag][1]:
-                    term_time[term][1][postag][1][ctimeframe] = 0
-                
-                term_time[term][1][postag] = (
-                    term_time[term][1][postag][0] + 1,
-                    term_time[term][1][postag][1]
-                )
-                term_time[term] = (
-                    term_time[term][0] + 1, 
-                    term_time[term][1]
-                )
-                term_time[term][1][postag][1][ctimeframe] += 1
+            if ctimeframe < self.end_seconds_timestamp:
+                for (term, postag) in comment.words:
+                    if term not in term_time:
+                        term_time[term] = (0, {})
+                    if postag not in term_time[term][1]:
+                        term_time[term][1][postag] = (0, {})
+                    if str(ctimeframe) not in term_time[term][1][postag][1]:
+                        term_time[term][1][postag][1][str(ctimeframe)] = 0
+                    
+                    term_time[term][1][postag][1][str(ctimeframe)] += 1
+                    term_time[term][1][postag] = (
+                        term_time[term][1][postag][0] + 1,
+                        term_time[term][1][postag][1]
+                    )
+                    term_time[term] = (
+                        term_time[term][0] + 1, 
+                        term_time[term][1]
+                    )
 
         return term_time
 
@@ -154,8 +164,9 @@ class Subreddit(object):
                         )
                     )
                     comment_queue.extend(comment.replies)
+                    # break
 
-                print ('\tA submission have ', subsub_counter, ' comments.')
+                print ('\tA submission has ', subsub_counter, ' comments.')
                 break
                 #print(submission)
                 # print('\n')
@@ -169,6 +180,3 @@ class Subreddit(object):
             break
 
         return all_comments
-    
-    def get_term_time_freq(self, term, postag, ctimeframe):
-        return self.term_time[term][1][postag][1][ctimeframe]

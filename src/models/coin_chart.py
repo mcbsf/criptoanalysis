@@ -1,4 +1,6 @@
+import requests
 import calendar
+from datetime import datetime
 
 class Candle(object):
     timestamp = 0
@@ -10,7 +12,7 @@ class Candle(object):
     percentage_variation = 0
 
     def __init__(self, timestamp, open_price, close_price, higher_price, lower_price, volume):
-        self.timestamp = timestamp
+        self.timestamp = timestamp# - 86400000 # 50400000 is equivalent to 14 hours (necessary to reajust to local bitfinex time stamp)
         self.open_price = open_price
         self.close_price = close_price
         self.higher_price = higher_price
@@ -20,7 +22,12 @@ class Candle(object):
 
     @property
     def seconds_timestamp(self):
-        return str(self.timestamp)[0:-3]
+        return int(str(self.timestamp)[0:-3])
+
+    @property
+    def datetime(self):
+        print(self.timestamp)
+        return datetime.fromtimestamp(self.seconds_timestamp)
 
 
 class CoinChart(object):
@@ -32,7 +39,7 @@ class CoinChart(object):
     candles = {}
 
     # Constants
-    sort = -1
+    sort = 1
     limit = 1000
     chart_type = 'hist'
 
@@ -53,25 +60,25 @@ class CoinChart(object):
     def end_seconds_timestamp(self):
         return calendar.timegm(self.end_date.timetuple())
 
-    def get_candle(timeframe):
-        return candles
+    def get_candle(self, timeframe):
+        return self.candles[str(timeframe)]
 
-    def _get_url(timeframe, exchange, type):
+    def _get_url(self, timeframe, exchange, type):
         return 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':' + exchange + '/' + type
 
     def _build_candles(self):
         candles = {}
-        start_seconds_timestamp = self.start_seconds_timestamp
-        end_seconds_timestamp = self.end_seconds_timestamp
+        start_miliseconds_timestamp = self.start_seconds_timestamp * 1000
+        end_miliseconds_timestamp = self.end_seconds_timestamp * 1000
         
-        while(start_seconds_timestamp < end_seconds_timestamp):
+        while(start_miliseconds_timestamp < end_miliseconds_timestamp):
             params = {
                 'limit': self.limit,
-                'start': start_seconds_timestamp,
-                'end': end_seconds_timestamp,
+                'start': start_miliseconds_timestamp,
+                'end': end_miliseconds_timestamp,
                 'sort': self.sort
             }
-            url = _get_url(self.candles_timeframe, self.chart_exchange, self.chart_type)
+            url = self._get_url(self.candles_timeframe, self.chart_exchange, self.chart_type)
 
             # Response with Section = "hist"
             # [
@@ -82,10 +89,13 @@ class CoinChart(object):
             # print('Total of candles: ' + str(len(r.json())))
 
             last_timestamp = 0
-            for candle in r.json():
-                last_timestamp = candle[0]
-                candles[last_timestamp] = Candle(candle[0], candle[1], candle[2], candle[3], candle[4], candle[5])
+            for c in r.json():
+                candle = Candle(c[0], c[1], c[2], c[3], c[4], c[5])
+                last_timestamp = candle.seconds_timestamp
+                candles[str(last_timestamp)] = candle
 
-            start_seconds_timestamp = start_seconds_timestamp + last_timestamp
+                print('last_timestamp: ', last_timestamp)
+
+            start_miliseconds_timestamp = start_miliseconds_timestamp + last_timestamp
 
         return candles
