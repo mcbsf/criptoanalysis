@@ -66,6 +66,14 @@ class Subreddit(object):
         # print (self.comments[0].timeframe)
 
     @property
+    def start_ajusted_seconds_timestamp(self):
+        return calendar.timegm(self.start_date.timetuple() + self.time_interval)
+
+    @property
+    def end_adjusted_seconds_timestamp(self):
+        return calendar.timegm(self.end_date.timetuple() + self.time_interval)
+    
+    @property
     def start_seconds_timestamp(self):
         return calendar.timegm(self.start_date.timetuple())
 
@@ -106,8 +114,8 @@ class Subreddit(object):
 
         term_time = {}
         for comment in self.comments:
-            ctimeframe = comment.timeframe
-            if ctimeframe < self.end_seconds_timestamp:
+            ctimeframe = comment.timeframe + self.time_interval
+            if ctimeframe < self.end_seconds_timestamp + self.time_interval:
                 for (term, postag) in comment.words:
                     if term not in term_time:
                         term_time[term] = (0, {})
@@ -136,8 +144,8 @@ class Subreddit(object):
         sub_counter = 0
         while(start_seconds_timestamp < self.end_seconds_timestamp):
             end_seconds_timestamp = start_seconds_timestamp + self.time_interval
+            print ('\nStart seconds_timestamp is: ', start_seconds_timestamp)
             for submission in self.subreddit.submissions(start_seconds_timestamp, end_seconds_timestamp):
-                print ('\nStart seconds_timestamp is: ', start_seconds_timestamp)
                 sub_counter += 1
 
                 # print(submission.title)  # Output: the submission's title
@@ -163,11 +171,12 @@ class Subreddit(object):
                             group_seed=self.time_interval
                         )
                     )
-                    comment_queue.extend(comment.replies)
+                    # comment_queue.extend(comment.replies)
                     # break
 
                 print ('\tA submission has ', subsub_counter, ' comments.')
-                break
+                # if subsub_counter > 5:
+                #     break
                 #print(submission)
                 # print('\n')
 
@@ -177,6 +186,6 @@ class Subreddit(object):
 
             print ('\n\tFinished a total of ', sub_counter, ' submissions.\n')
             start_seconds_timestamp = end_seconds_timestamp
-            break
+            # break
 
         return all_comments

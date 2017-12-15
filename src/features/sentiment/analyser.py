@@ -16,73 +16,175 @@ class SentimentAnalyser(object):
     time_emotion = {}
     wna = None
 
-    def __init__(self, coin_chart, subreddit):
+    def __init__(self, coin_chart=None, subreddit=None):
         self.coin_chart = coin_chart
         self.subreddit = subreddit
         self.wna = WNAffect('resources/wordnet-1.6/', 'resources/wn-domains-3.2/')
-        print('Starting time emtion building')
         self.time_emotion = self._build_time_emotion()
 
-        # emo = wna.get_emotion('angry', 'JJ')
+        # emo = self.wna.get_emotion('angry', 'JJ')
         # print(' -> '.join([emo.get_level(i).name for i in range(emo.level + 1)]))
         # # print(emo)
-        # emo = wna.get_emotion('mad', 'JJ')
+        # emo = self.wna.get_emotion('mad', 'JJ')
         # print(' -> '.join([emo.get_level(i).name for i in range(emo.level + 1)]))
         # # print(emo)
-        # emo = wna.get_emotion('annoyed', 'JJ')
+        # emo = self.wna.get_emotion('annoyed', 'JJ')
         # print(' -> '.join([emo.get_level(i).name for i in range(emo.level + 1)]))
         # # print(emo)
-        # emo = wna.get_emotion('hapy', 'JJ')
+        # emo = self.wna.get_emotion('hapy', 'JJ')
         # # print(' -> '.join([emo.get_level(i).name for i in range(emo.level + 1)]))
         # print(emo)
 
     def perform_analysis(self):
-        chart_data = []
-        histogram_data = []
-        histogram = {}
-        c = 0
+        timestamps = []
+        high_prices = []
+        low_prices = []
+        open_prices = []
+        close_prices = []
+        percentage_variations = []
+        emotion_data = {}
+        all_emotions = []
+        print(self.time_emotion)
+        
         for ctimeframe in self.time_emotion:
             (candle, emotion_dic) = self.time_emotion[ctimeframe]
+            # (candle, emotion_dic_prov) = self.time_emotion[ctimeframe]
+            
+            # emotion_dic = {}
+            # for emotion in emotion_dic_prov:
+            #     if str(emotion) != 'None':                
+            #         if emotion.get_level(5) not in emotion_dic:
+            #             emotion_dic[str(emotion.get_level(5))] = 0
+                    
+            #         emotion_dic[str(emotion.get_level(5))] += 1
+
+            print ('AQUIIIIIIIIII')
+            # print (emotion_dic_prov)
+            print (emotion_dic)
+
+            high_prices.append(candle.higher_price)
+            low_prices.append(candle.lower_price)
+            open_prices.append(candle.open_price)
+            close_prices.append(candle.close_price)
+            percentage_variations.append((candle.percentage_variation, candle.seconds_timestamp))
+
+            timestamps.append((candle.seconds_timestamp, candle.datetime))
+            for emotion in emotion_dic:
+                if str(emotion) != 'None':
+                    if candle.seconds_timestamp not in emotion_data:
+                        emotion_data[candle.seconds_timestamp] = {}
+                    if str(emotion) not in emotion_data[candle.seconds_timestamp]:
+                        emotion_data[candle.seconds_timestamp][str(emotion)] = 0
+                        
+                    # last_pos = len(emotion_data[str(emotion)])-1
+                    # emotion_data[str(emotion)][last_pos] += emotion_dic[str(emotion)]
+                    emotion_data[candle.seconds_timestamp][str(emotion)] += emotion_dic[str(emotion)]
+
+            for emotion in emotion_dic:
+                if emotion not in all_emotions:
+                    all_emotions.append(str(emotion))
+            
+            # for emotion in emotion_data:
+            #     emotion_data[str(emotion)].append(0)
+
+        print('opaaa')
+        percentage_variations.sort(key=lambda tup: tup[1])
+        timestamps.sort(key=lambda tup: tup[0])
+        print(percentage_variations)
+
+        high_data = go.Scatter(
+            name='high price',
+            x=[tup[1] for tup in timestamps],            
+            y=high_prices,
+            line =  dict(
+                color = ('rgb(51, 204, 51)'),
+                width = 4,
+                dash = 'dot'
+            )
+        )
+        low_data = go.Scatter(
+            name='low price',
+            x=[tup[1] for tup in timestamps],            
+            y=low_prices,
+            line =  dict(
+                color = ('rgb(255, 80, 80)'),
+                width = 4,
+                dash = 'dot'
+            )
+        )
+        open_data = go.Scatter(
+            name='open price',
+            x=[tup[1] for tup in timestamps],            
+            y=open_prices,
+            line =  dict(
+                color = ('rgb(204, 51, 255)'),
+                width = 4
+            )
+        )
+        close_data = go.Scatter(
+            name='close price',
+            x=[tup[1] for tup in timestamps],            
+            y=close_prices,
+            line =  dict(
+                color = ('rgb(204, 51, 255)'),
+                width = 4
+            )
+        )
+        percentage_data = go.Scatter(
+            name='Percentage variation',
+            x=[tup[1] for tup in timestamps],            
+            y=[tup[0]*100 for tup in percentage_variations],
+            line =  dict(
+                color = ('rgb(0, 0, 102)'),
+                width = 4
+            )
+        )
+
+        # chart_data = [low_data, high_data, open_data, close_data]
+        chart_data = [low_data, high_data, open_data, close_data, percentage_data]
+
+        totallen = {}
+        # first_time = True
+        for (timestamp, _) in timestamps:
+            print('emotion_data[timestamp].values')
+            print(emotion_data[timestamp])
+            totallen[timestamp] = sum(emotion_data[timestamp].values())
+            #     if first_time:
+            #         totallen.append(value)
+            #     else:
+            #         totallen[i] += value
+            # first_time = False
+
+            # totallen += len(emotion_data[str(emotion)])
+        
+        print (totallen)
+        # print ([value/totallen for value in emotion_data[emotion]])
+        # print (emotion_data)
+        ordered_emotions = {}
+        for (timestamp, _) in timestamps:
+            for emotion in all_emotions:
+                if emotion not in ordered_emotions:
+                    ordered_emotions[emotion] = []
+                if emotion in emotion_data[timestamp]:
+                    ordered_emotions[emotion].append(emotion_data[timestamp][emotion]/totallen[timestamp])
+                else:
+                    ordered_emotions[emotion].append(0)
+            
+        for emotion in ordered_emotions:
             chart_data.append(
-                go.Box(
-                    name=candle.datetime,
-                    y=[candle.open_price, candle.close_price, candle.higher_price, candle.lower_price],
-                    boxpoints='all',
-                    jitter=0.3
+                go.Bar(
+                    name=str(emotion),
+                    x=[tup[1] for tup in timestamps],
+                    y=[value*100 for value in ordered_emotions[emotion]]
+                    # y=emotion_data[emotion]
                 )
             )
-
-            temp = {}
-            for index, emotion in enumerate(emotion_dic):
-                if str(index) not in temp:
-                    temp[str(index)] = 0
-                
-                temp[str(index)] += 1
+        # chart_data.append()
             
-            for index, emotion in enumerate(emotion_dic):  
-                if str(index) not in histogram:  
-                    histogram[str(index)] = []
-
-                histogram[str(index)].append(emotion_dic[emotion])
-
-            c = candle.datetime
-            
-        print (histogram)
-        h = []
-        for index in histogram:
-            histogram_data.append(
-                go.Histogram(
-                    name=str(index),
-                    x=c,
-                    opacity=0.5
-                )
-            )
-
-        print(histogram_data)
-
-        data = [chart_data, histogram_data]
-        py.offline.plot(data, filename='box-histogram')
-        # "layout": go.Layout(title="Sentiment analysis over bitcoin price chart")
+        py.offline.plot({
+            'data': chart_data,
+            'layout': go.Layout(title="Sentiment analysis over bitcoin price chart", barmode='stack')
+        })
 
     def _build_time_emotion(self):
         # time_emotion = {
@@ -94,6 +196,7 @@ class SentimentAnalyser(object):
         #     )
 
         # }
+        print ('\tBuilding paranaue')
         time_emotion = {}
         for term in self.subreddit.term_time:
             # printu(term)
@@ -101,18 +204,25 @@ class SentimentAnalyser(object):
                 # printu(postag)
                 emotion = self.wna.get_emotion(term, postag)
                 if emotion is not None:
+                    # print ('\t->', self.subreddit.get_term_time(term, postag))
                     for ctimeframe in self.subreddit.get_term_time(term, postag):
+                        # print ('\t\t->', ctimeframe)
+                        
                         if str(ctimeframe) in self.coin_chart.candles:
-                            if str(ctimeframe) not in time_emotion:
-                                time_emotion[str(ctimeframe)] = (None, {})
-                            if emotion not in time_emotion[str(ctimeframe)][1]:
-                                time_emotion[str(ctimeframe)][1][emotion] = 0
 
-                            time_emotion[str(ctimeframe)][1][emotion] += self.subreddit.get_term_time_freq(term, postag, ctimeframe)
+                            if str(ctimeframe) not in time_emotion:
+                                print('eitcha')
+                                time_emotion[str(ctimeframe)] = (None, {})
+                            if str(emotion.get_level(5)) not in time_emotion[str(ctimeframe)][1]:
+                                time_emotion[str(ctimeframe)][1][str(emotion.get_level(5))] = 0
+
+                            time_emotion[str(ctimeframe)][1][str(emotion.get_level(5))] += self.subreddit.get_term_time_freq(term, postag, ctimeframe)
 
                             time_emotion[str(ctimeframe)] = (
                                 self.coin_chart.get_candle(int(ctimeframe) + self.subreddit.time_interval),
                                 time_emotion[str(ctimeframe)][1]
                             )
+
+        print(time_emotion)
                     
         return time_emotion

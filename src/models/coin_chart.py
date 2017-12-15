@@ -27,7 +27,7 @@ class Candle(object):
     @property
     def datetime(self):
         print(self.timestamp)
-        return datetime.fromtimestamp(self.seconds_timestamp)
+        return str(datetime.fromtimestamp(self.seconds_timestamp))
 
 
 class CoinChart(object):

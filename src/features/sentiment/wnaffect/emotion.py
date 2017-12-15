@@ -38,7 +38,6 @@ class Emotion:
     
     def __str__(self):
         """Returns the emotion string formatted."""
-        
         return self.name
         
         
