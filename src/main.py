@@ -11,8 +11,15 @@ from models.subreddits import Subreddit
 
 from features.sentiment.analyser import SentimentAnalyser
 
-start_date = datetime(2015, 12, 1, 12)
-end_date = datetime(2016, 1, 1, 12)
+start_year = 2018
+start_month = 3
+start_day = 27
+end_year = 2018
+end_month = 4
+end_day = 1
+
+start_date = datetime(start_year, start_month, start_day, 12)
+end_date = datetime(end_year, end_month, end_day, 12)
 
 print ('Building coin chart\n')
 
@@ -23,16 +30,16 @@ coin_chart = CoinChart(start_date=start_date,
 
 # print ('Coin chart start time: ', coin_chart.start_seconds_timestamp) # UTC Time date
 # print ('Coin chart end time: ', coin_chart.end_seconds_timestamp, '\n')
-print ('Starting subreddit comments retrieval\n')
+print ('\nStarting subreddit comments retrieval\n')
 
-start_date = datetime(2015, 12, 1, 00)
-end_date = datetime(2016, 1, 1, 00)
+start_date = datetime(start_year, start_month, start_day, 00)
+end_date = datetime(end_year, end_month, end_day, 00)
 comment_cleaner = lambda document: cleaner_builder(
-	document, 
-	lower_words = False,
+	document,
+	lower_words = True,
 	fold_numbers = False,
-	remove_stopwords = False, 
-	do_stemming = False, 
+	remove_stopwords = True, 
+	do_stemming = True, 
 	do_lemmatizing = False)
 
 subreddit = Subreddit(client_id='g7g1TXRPCG1t4g', 
