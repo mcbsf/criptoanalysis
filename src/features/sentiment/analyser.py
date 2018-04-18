@@ -2,6 +2,7 @@ from models.coin_chart import CoinChart, Candle
 from models.subreddits import Subreddit, Comment
 
 from features.sentiment.wnaffect.interface import WNAffect
+from features.correlation import pearson
 
 import plotly as py
 import plotly.graph_objs as go
@@ -15,6 +16,7 @@ class SentimentAnalyser(object):
     subreddit = None
     time_emotion = {}
     wna = None
+    correlation_matrix = None
 
     def __init__(self, coin_chart=None, subreddit=None):
         self.coin_chart = coin_chart
@@ -185,6 +187,45 @@ class SentimentAnalyser(object):
             'data': chart_data,
             'layout': go.Layout(title="Sentiment analysis over bitcoin price chart", barmode='stack')
         })
+
+    def build_correlation_matrix(self):
+        #achar correlação
+        #high_prices = []
+        #low_prices = []
+        #open_prices = []
+        #close_prices = []
+        #percentage_variations = []
+        #emotion -> freq
+        correlation_matrix = []
+        counter = 0
+
+        python_array = [1,2,3,4,5,6]
+        np_array = np.array(python_array)
+        
+
+        for time in self.time_emotion:
+	        #time[0] é o candle
+            instance = []
+	        for attr in time[0]:
+	    	    #correlation_matrix[counter].append(attr)
+                instance.append(attr)
+	        #time[1] pega o dicionario de emoções->freq
+	        for emotion, frequence in time[1]:
+	    	    #correlation_matrix[counter].append(frequence)
+                instance.append(frequence)
+            np_instance = np.array(instance)
+            correlation_matrix.append(np_instance)
+	        #counter = counter + 1
+        np_correlation_matrix = np.array(correlation_matrix)
+        self.correlation_matrix = np_correlation_matrix
+    
+    def do_correlation(self, matrix):
+        for i in range(len(matrix)):
+            for j in range(len(matrix)-1):
+                if(i!=(j+1)):
+                    corelation_value = pearson.population_correlation(matrix, i, j+1)
+                    #escrever correlação
+
 
     def _build_time_emotion(self):
         # time_emotion = {

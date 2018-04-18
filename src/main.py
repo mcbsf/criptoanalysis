@@ -59,5 +59,10 @@ print ('It\'s finished')
 
 print('Starting time sentiment analyser builder')
 sa = SentimentAnalyser(coin_chart, subreddit)
+
+
+#itera sobre os tempos
+sa.build_correlation_matrix()
+
 print('Starting time sentiment analysis')
 sa.perform_analysis()
