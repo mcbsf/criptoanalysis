@@ -25,7 +25,7 @@ def population_correlation(data_matrix, x_index, y_index):
 
 def sample_correlation(data_matrix, x_index, y_index):
     # Sample information
-    sample_len = len(data_matrix[0][0])
+    sample_len = data_matrix[0].size
     sample_sum = data_matrix.sum(axis=0)
 
     # Feature information
@@ -40,6 +40,7 @@ def sample_correlation(data_matrix, x_index, y_index):
     numerator = (sample_len * xy.sum()) - (sample_sum[x_index] * sample_sum[y_index])
     x_denominator = (sample_len * x_pow.sum()) - (x_population.sum() ** 2)
     y_denominator = (sample_len * y_pow.sum()) - (y_population.sum() ** 2)
+    # TODO: Fix runtimeWarning: overflow encountered in long_scalars and output value
     denominator = (x_denominator * y_denominator) ** (1/2)
     
     return numerator/denominator
