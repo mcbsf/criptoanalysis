@@ -111,3 +111,6 @@ ENV/
 
 # hold libs locally so it doesnt mess with the repository
 src/resources/*
+
+# vscode stuff
+.vscode/*
