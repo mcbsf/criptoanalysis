@@ -18,5 +18,5 @@ requests==2.18.4
 setupfiles==0.0.50
 six==1.11.0
 update-checker==0.16
-urllib3==1.22
+urllib3==1.26.5
 wrapt==1.10.11
